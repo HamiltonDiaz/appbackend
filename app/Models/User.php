@@ -6,10 +6,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable;
+
+    public function getJWTIdentifier(){
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(){
+        return [];
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -17,9 +26,19 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'primer_nombre',
+        'otros_nombres',
+        'primer_apellido',
+        'segundo_apellido',
         'email',
+        'nombre_usuario',
+        'telefono',
+        'numero_identificacion',
+        'name',
+        'email_verified_at',
         'password',
+        'id_tipos_identificacion',
+        'id_estado',
     ];
 
     /**
