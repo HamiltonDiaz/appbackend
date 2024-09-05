@@ -1,18 +1,26 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 
-// Route::get('/users', function(Request $request){
-//     return $request->user();
-// })->middleware('auth:sanctum');
-
-// Route::group(['middleware' => 'api'], function ($routes) {
-//     Route::post('user-register', [UserController::class, 'userRegister']);
-    
+// Route::prefix("v1/users")->group(function () {
+//     Route::post('register', [UserController::class, 'userRegister']);
+//     Route::post('login', [UserController::class, 'login']);    
 // });
 
-Route::middleware('api')->prefix("v1/users")->group(function () {
-    Route::post('register', [UserController::class, 'userRegister']);
+// // Rutas protegidas por el middleware JWT
+// Route::prefix("v1/users")->middleware('auth')->group(function () {
+//     Route::post('logout', [UserController::class, 'logout']);
+//     Route::get('me', [UserController::class, 'me']);
+// });
+Route::prefix("v1/users")->group(function () {
+    Route::post('login', [UserController::class, 'login'])->name('login'); // Ruta de login
+    Route::post('register', [UserController::class, 'userRegister']); // Ruta de registro
+
+    // Rutas protegidas por el middleware JWT
+    Route::middleware('auth:api')->group(function () {
+        Route::post('logout', [UserController::class, 'logout']);
+        Route::get('me', [UserController::class, 'me']);
+    });
 });
+

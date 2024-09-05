@@ -8,15 +8,27 @@ use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Database\QueryException;
 
 
 class userController extends Controller
 {
+    /**
+     * Registra un nuevo usuario en la base de datos.
+     *
+     * La función recibe los datos del formulario de registro por medio de la petición HTTP.
+     * Verifica que los datos estén correctos y si es así, los registra en la base de datos.
+     * Si hay algún error, devuelve una respuesta HTTP con un mensaje de error.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function userRegister(Request $request)
     {
         //roles 'Superadmin\nAdmin\nTutor\nAsistente\n',
 
+        // dd($request->all());
         $data = $request->all();
 
         $messages = [
@@ -73,7 +85,7 @@ class userController extends Controller
             'segundo_apellido' => 'string|min:3|max:100|nullable',
             'telefono' => 'required|string|min:7|max:20',
             'numero_identificacion' => 'required|string|min:7|max:20',
-            'id_tipos_identificacion' => 'required|integer|max:2',
+            'id_tipos_identificacion' => 'required|integer|max:3',
         ],$messages);
 
         if ($validator->fails()) {
@@ -102,15 +114,89 @@ class userController extends Controller
             return response()->json([
                 'status' => 200,
                 'success' => true,
+                'data'=>$user,
                 'message' => 'Registro creado exitosamente.',
             ]);
 
         } catch (QueryException $ex) {
             return response()->json([
                 'status' => 400,
-                'success' => false,
+                'success' => false,                
                 'message' => 'Error al crear el registro: ' . $ex->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Maneja la solicitud de inicio de sesión del usuario.
+     *
+     * Este método recibe una solicitud con las credenciales del usuario (nombre y contraseña).
+     * Utiliza el método `Auth::attempt()` para intentar autenticar al usuario con las credenciales proporcionadas.
+     * Si la autenticación falla, devuelve una respuesta JSON con un mensaje de error y un código de estado 401.
+     * Si la autenticación es exitosa, devuelve un token de acceso mediante el método `respondWithToken()`.
+     *
+     * @param \Illuminate\Http\Request $request La solicitud que contiene las credenciales del usuario.
+     * 
+     * @return \Illuminate\Http\JsonResponse Una respuesta JSON que contiene el token de acceso o un mensaje de error.
+     */
+    public function login(Request $request)
+    {
+        $credentials = $request->only('name', 'password'); 
+        $token =Auth::attempt($credentials);
+        if (!$token) {
+            return response()->json(['error' => 'Credenciales incorrectas'], 401);
+        }
+        return $this->respondWithToken($token);
+    }
+
+    /**
+     * Cierra la sesión actual y elimina el token de autenticación.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function logout()
+    {
+        $token = JWTAuth::getToken();// Obtén el token actual
+        JWTAuth::invalidate($token);//Elimina el token
+        Auth::logout();    
+        return response()->json([
+            'status' => 200,
+            'success' => true, 
+            'message' => '!Hasta pronto!'
+        ]);
+    }
+
+    /**
+     * Devuelve el usuario autenticado actual en formato JSON.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function me()
+    {
+        return response()->json(Auth::user());
+    }
+
+
+    /**
+     * Actualiza el token de autenticación actual.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function refresh(){
+        return $this->respondWithToken(Auth::refresh());
+    }
+
+    /**
+     * Retorna a success JSON response with the given token.
+     *
+     * @param  string  $token
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function respondWithToken($token){
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => Auth::factory()->getTTL() * 60 //Devuelve el tiempo de vida del token
+        ]);
     }
 }
