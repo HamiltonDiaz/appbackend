@@ -10,10 +10,23 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Database\QueryException;
-
+use Illuminate\Support\Facades\Password;
+use Illuminate\Auth\Events\PasswordReset;
+use App\Services\MailConfigService;
+use App\Mail\ResetPasswordMail;
+use Illuminate\Support\Facades\Mail;
 
 class userController extends Controller
 {
+    protected $mailConfig;
+
+    public function __construct(MailConfigService $mailConfig)
+    {
+        $this->mailConfig = $mailConfig;
+    }
+
+
+
     /**
      * Registra un nuevo usuario en la base de datos.
      *
@@ -28,9 +41,7 @@ class userController extends Controller
     {
         //roles 'Superadmin\nAdmin\nTutor\nAsistente\n',
 
-        // dd($request->all());
         $data = $request->all();
-
         $messages = [
             'name.required' => 'El nombre de usuario es obligatorio.',
             'name.min' => 'El nombre de usuario debe tener al menos 5 caracteres.',
@@ -199,4 +210,116 @@ class userController extends Controller
             'expires_in' => Auth::factory()->getTTL() * 60 //Devuelve el tiempo de vida del token
         ]);
     }
+
+
+    /**
+     * Envía un enlace de restablecimiento de contraseña al correo electrónico proporcionado.
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function sendResetLinkEmail(Request $request)
+    {
+        $messages = [
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El correo electrónico debe ser una dirección válida.',
+            'email.max' => 'El correo electrónico no puede exceder los 100 caracteres.',
+        ];
+        $data = $request->all();
+        $validator = Validator::make($data, [
+            'email' => 'required|string|email|max:100',         
+        ],$messages);
+
+        $this->mailConfig->configure();
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 400,
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json([                
+            'status' => 404,
+            'success' => false, 
+            'message' => 'No se encontró el usuario'
+            ], 404);
+        }
+    
+        $token = Password::createToken($user);
+    
+        // Enviar correo con el token
+        Mail::to($request->email)->send(new ResetPasswordMail($token));    
+        return response()->json([                            
+            'status' => 200,
+            'success' => true,
+            'data' => ["token" => $token],
+            'message' => 'Enlace de restablecimiento enviado correctamente.',
+        ]);
+    }
+
+    public function reset(Request $request)
+    {
+        // Validar los datos de la solicitud
+        $messages = [
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El correo electrónico debe ser una dirección válida.',
+            'email.max' => 'El correo electrónico no puede exceder los 100 caracteres.',
+
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.min' => 'La contraseña debe tener al menos 3 caracteres.',
+            'password.max' => 'La contraseña no puede exceder los 100 caracteres.',
+            'password.confirmed' => 'La confirmación de la contraseña no coincide.',
+
+            'token.required' => 'Token incorrecto.',
+        ];
+        $data = $request->all();
+        $validator = Validator::make($data, [
+            'email' => 'required|string|email|max:100',
+            'password' => 'required|string|min:3|max:100|confirmed',
+            'token' => 'required|string',
+        ],$messages);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 400,
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+        
+        $this->mailConfig->configure();
+
+        // Intentar restablecer la contraseña
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                // Guardar la nueva contraseña encriptada
+                $user->password = Hash::make($password);
+                $user->save();
+
+                // Lanzar evento de restablecimiento
+                event(new PasswordReset($user));
+            }
+        );
+
+        // Responder según el estado del restablecimiento
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json([
+                'status' => 200,
+                'success' => true,
+                'message' => "restablecimiento de contrasenia exitoso",
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 400,
+                'success' => false,
+                'message' => "Error al restablecer contraseña",
+            ], 400);
+        }
+    }    
+    
 }
