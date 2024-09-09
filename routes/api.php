@@ -10,10 +10,15 @@ Route::prefix("v1/users")->group(function () {
     Route::post('password/forgot', [UserController::class, 'sendResetLinkEmail'])->name('password.forgot');// Ruta para enviar el enlace de recuperación de contraseña
     Route::post('password/reset', [UserController::class, 'reset'])->name('password.reset');// Ruta para restablecer la contraseña
 
+      
+
     // Rutas protegidas por el middleware JWT
     Route::middleware('auth:api')->group(function () {
         Route::post('logout', [UserController::class, 'logout']);
-        Route::get('me', [UserController::class, 'me']);        
+        Route::get('me', [UserController::class, 'me']);    
+        Route::get('find/{id}', [UserController::class, 'findById']);    
+        Route::get('list-all/{rows?}', [UserController::class, 'index']);   
+
         
     });
 });
