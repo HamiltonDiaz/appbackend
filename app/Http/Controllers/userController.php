@@ -28,6 +28,31 @@ class userController extends Controller
 
 
     /**
+     * Muestra una lista de todos los usuarios con sus datos,
+     * excluyendo aquellos que están inactivos o elminados
+     * 
+     * @param int $rows Número de filas a obtener por defecto.
+     * @return \Illuminate\Http\Response
+     */
+    public function index($rows=10){
+        $users = User::where('id_estado', 1)->or('id_estado', 2)     
+        ->paginate($rows, [
+            // '*' //Esto significa que se devuelven todos los campos de la tabla
+            'id',
+            'numero_identificacion',
+            'primer_nombre',
+            'otros_nombres',
+            'primer_apellido',
+            'segundo_apellido',
+            'name',
+            'email',
+            'telefono',
+        ]);
+        return $users;
+    }
+
+
+    /**
      * Registra un nuevo usuario en la base de datos.
      *
      * La función recibe los datos del formulario de registro por medio de la petición HTTP.
@@ -136,6 +161,34 @@ class userController extends Controller
                 'message' => 'Error al crear el registro: ' . $ex->getMessage(),
             ]);
         }
+    }
+
+    public function findById($id){        
+        try {
+            $user = User::find($id);
+
+            if (!$user) {
+                return response()->json([
+                    'status' => 400,
+                    'success' => false,
+                    'message' => 'Usuario no encontrado.',
+                ]);
+            }
+
+            return response()->json([
+                'status' => 200,
+                'success' => true,
+                'data'=>$user,
+                'message' => 'Usuario encontrado exitosamente.',
+            ]);
+        } catch (QueryException $ex) {
+            return response()->json([
+                'status' => 400,
+                'success' => false,                
+                'message' => 'Error al consultar el registro: ' . $ex->getMessage(),
+            ]);
+        }
+        
     }
 
     /**
