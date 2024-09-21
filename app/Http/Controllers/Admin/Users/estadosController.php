@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin\Users;
 
 use App\Models\estados;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class estadosController extends Controller
 {
