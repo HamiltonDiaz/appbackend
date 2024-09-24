@@ -16,13 +16,16 @@ Route::prefix("v1/users")->group(function () {
         Route::post('logout', [UserController::class, 'logout'])->name('user.logout');
         Route::get('me', [UserController::class, 'me'])->name('user.me');    
         Route::get('find/{id}', [UserController::class, 'findById'])->name('user.findById');    
-        Route::get('list-all/{rows?}', [UserController::class, 'user.index']);
+        Route::get('list-all/{rows?}', [UserController::class, 'index'])->name('user.index'); 
         
         //Roles
     });
 
     Route::get('rol/list-all/{rows?}', [RolController::class, 'index'])->name('user.rol.index');
-    Route::post('rol/assing', [RolController::class, 'store'])->name('user.rol.assing');
+    Route::post('rol/create', [RolController::class, 'store'])->name('user.rol.create');
+    
+    
+    Route::post('rol/assing', [RolController::class, 'asingRole'])->name('user.rol.assing');
 });
 
 
