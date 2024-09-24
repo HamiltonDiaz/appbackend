@@ -43,6 +43,19 @@ class User extends Authenticatable implements JWTSubject
         'id_estado',
     ];
 
+    public static function documentExists($id_tipo_identificacion, $numero_identificacion, $userId = null)
+    {
+        $query = self::where('id_tipos_identificacion', $id_tipo_identificacion)
+            ->where('numero_identificacion', $numero_identificacion);
+        
+        if ($userId) {
+            $query->where('id', '!=', $userId); // Excluir el usuario actual
+        }
+
+        return $query->exists();
+    }
+
+
     /**
      * The attributes that should be hidden for serialization.
      *

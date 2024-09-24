@@ -21,6 +21,57 @@ use Illuminate\Support\Facades\Mail;
 class userController extends Controller
 {
     protected $mailConfig;
+    protected   $messages = [
+        'name.required' => 'El nombre de usuario es obligatorio.',
+        'name.min' => 'El nombre de usuario debe tener al menos 5 caracteres.',
+        'name.max' => 'El nombre de usuario no puede exceder los 20 caracteres.',
+        'name.unique' => 'El nombre de usuario ya ha sido registrado.',
+
+        'email.required' => 'El correo electrónico es obligatorio.',
+        'email.email' => 'El correo electrónico debe ser una dirección válida.',
+        'email.max' => 'El correo electrónico no puede exceder los 100 caracteres.',
+        'email.unique' => 'El correo electrónico ya ha sido registrado.',
+        
+        'password.required' => 'La contraseña es obligatoria.',
+        'password.min' => 'La contraseña debe tener al menos 3 caracteres.',
+        'password.max' => 'La contraseña no puede exceder los 100 caracteres.',
+        'password.confirmed' => 'La confirmación de la contraseña no coincide.',
+        
+        'primer_nombre.required' => 'El primer nombre es obligatorio.',
+        'primer_nombre.min' => 'El primer nombre debe tener al menos 3 caracteres.',
+        'primer_nombre.max' => 'El primer nombre no puede exceder los 100 caracteres.',
+        
+        'otros_nombres.string' => 'Los otros nombres deben ser una cadena de texto.',
+        'otros_nombres.min' => 'Los otros nombres deben tener al menos 3 caracteres.',
+        'otros_nombres.max' => 'Los otros nombres no pueden exceder los 100 caracteres.',
+        
+        'primer_apellido.required' => 'El primer apellido es obligatorio.',
+        'primer_apellido.min' => 'El primer apellido debe tener al menos 3 caracteres.',
+        'primer_apellido.max' => 'El primer apellido no puede exceder los 100 caracteres.',
+        
+        'segundo_apellido.string' => 'El segundo apellido debe ser una cadena de texto.',
+        'segundo_apellido.min' => 'El segundo apellido debe tener al menos 3 caracteres.',
+        'segundo_apellido.max' => 'El segundo apellido no puede exceder los 100 caracteres.',
+        
+        'telefono.required' => 'El teléfono es obligatorio.',
+        'telefono.min' => 'El teléfono debe tener al menos 7 caracteres.',
+        'telefono.max' => 'El teléfono no puede exceder los 20 caracteres.',
+        
+        'numero_identificacion.required' => 'El número de identificación es obligatorio.',
+        'numero_identificacion.min' => 'El número de identificación debe tener al menos 7 caracteres.',
+        'numero_identificacion.max' => 'El número de identificación no puede exceder los 20 caracteres.',
+        
+        'id_tipos_identificacion.required' => 'El tipo de identificación es obligatorio.',
+        'id_tipos_identificacion.integer' => 'El tipo de identificación debe ser un número entero.',
+        'id_tipos_identificacion.max' => 'El tipo de identificación no puede exceder los 2 caracteres.',
+
+        'token.required' => 'Token incorrecto.',
+
+        'id_estado.required' => 'Estado es obligatorio.',
+        'id_estado.integer' => 'El id del estado debe ser un número entero.',
+        'id_estado.max' => 'El id del estado no puede exceder los 2 caracteres.',
+
+    ];
 
     public function __construct(MailConfigService $mailConfig)
     {
@@ -68,53 +119,18 @@ class userController extends Controller
     {
         //roles 'Superadmin\nAdmin\nTutor\nAsistente\n',
 
-        $data = $request->all();
-        $messages = [
-            'name.required' => 'El nombre de usuario es obligatorio.',
-            'name.min' => 'El nombre de usuario debe tener al menos 5 caracteres.',
-            'name.max' => 'El nombre de usuario no puede exceder los 20 caracteres.',
-            
-            'email.required' => 'El correo electrónico es obligatorio.',
-            'email.email' => 'El correo electrónico debe ser una dirección válida.',
-            'email.max' => 'El correo electrónico no puede exceder los 100 caracteres.',
-            'email.unique' => 'El correo electrónico ya ha sido registrado.',
-            
-            'password.required' => 'La contraseña es obligatoria.',
-            'password.min' => 'La contraseña debe tener al menos 3 caracteres.',
-            'password.max' => 'La contraseña no puede exceder los 100 caracteres.',
-            'password.confirmed' => 'La confirmación de la contraseña no coincide.',
-            
-            'primer_nombre.required' => 'El primer nombre es obligatorio.',
-            'primer_nombre.min' => 'El primer nombre debe tener al menos 3 caracteres.',
-            'primer_nombre.max' => 'El primer nombre no puede exceder los 100 caracteres.',
-            
-            'otros_nombres.string' => 'Los otros nombres deben ser una cadena de texto.',
-            'otros_nombres.min' => 'Los otros nombres deben tener al menos 3 caracteres.',
-            'otros_nombres.max' => 'Los otros nombres no pueden exceder los 100 caracteres.',
-            
-            'primer_apellido.required' => 'El primer apellido es obligatorio.',
-            'primer_apellido.min' => 'El primer apellido debe tener al menos 3 caracteres.',
-            'primer_apellido.max' => 'El primer apellido no puede exceder los 100 caracteres.',
-            
-            'segundo_apellido.string' => 'El segundo apellido debe ser una cadena de texto.',
-            'segundo_apellido.min' => 'El segundo apellido debe tener al menos 3 caracteres.',
-            'segundo_apellido.max' => 'El segundo apellido no puede exceder los 100 caracteres.',
-            
-            'telefono.required' => 'El teléfono es obligatorio.',
-            'telefono.min' => 'El teléfono debe tener al menos 7 caracteres.',
-            'telefono.max' => 'El teléfono no puede exceder los 20 caracteres.',
-            
-            'numero_identificacion.required' => 'El número de identificación es obligatorio.',
-            'numero_identificacion.min' => 'El número de identificación debe tener al menos 7 caracteres.',
-            'numero_identificacion.max' => 'El número de identificación no puede exceder los 20 caracteres.',
-            
-            'id_tipos_identificacion.required' => 'El tipo de identificación es obligatorio.',
-            'id_tipos_identificacion.integer' => 'El tipo de identificación debe ser un número entero.',
-            'id_tipos_identificacion.max' => 'El tipo de identificación no puede exceder los 2 caracteres.',
-        ];
+        $exists = User::documentExists($request->id_tipos_identificacion,$request->numero_identificacion);
+        if ($exists) {
+            return response()->json([
+                'status' => 400,
+                'success' => false,
+                'message' => 'Tipo y número de documento ya registrado.',
+            ]);
+        }
 
+        $data = $request->all();
         $validator = Validator::make($data, [
-            'name' => 'required|string|min:5|max:20', // nombre usuario
+            'name' => 'required|string|min:5|max:20|unique:users', // nombre usuario
             'email' => 'required|string|email|max:100|unique:users',
             'password' => 'required|string|min:3|max:100|confirmed',
             'primer_nombre' => 'required|string|min:3|max:100',
@@ -124,7 +140,7 @@ class userController extends Controller
             'telefono' => 'required|string|min:7|max:20',
             'numero_identificacion' => 'required|string|min:7|max:20',
             'id_tipos_identificacion' => 'required|integer|max:3',
-        ],$messages);
+        ],$this->messages);
 
         if ($validator->fails()) {
             return response()->json([
@@ -275,15 +291,10 @@ class userController extends Controller
      */
     public function sendResetLinkEmail(Request $request)
     {
-        $messages = [
-            'email.required' => 'El correo electrónico es obligatorio.',
-            'email.email' => 'El correo electrónico debe ser una dirección válida.',
-            'email.max' => 'El correo electrónico no puede exceder los 100 caracteres.',
-        ];
         $data = $request->all();
         $validator = Validator::make($data, [
             'email' => 'required|string|email|max:100',         
-        ],$messages);
+        ],$this->messages);
 
         $this->mailConfig->configure();
 
@@ -318,25 +329,13 @@ class userController extends Controller
 
     public function reset(Request $request)
     {
-        // Validar los datos de la solicitud
-        $messages = [
-            'email.required' => 'El correo electrónico es obligatorio.',
-            'email.email' => 'El correo electrónico debe ser una dirección válida.',
-            'email.max' => 'El correo electrónico no puede exceder los 100 caracteres.',
-
-            'password.required' => 'La contraseña es obligatoria.',
-            'password.min' => 'La contraseña debe tener al menos 3 caracteres.',
-            'password.max' => 'La contraseña no puede exceder los 100 caracteres.',
-            'password.confirmed' => 'La confirmación de la contraseña no coincide.',
-
-            'token.required' => 'Token incorrecto.',
-        ];
+        // Validar los datos de la solicitud     
         $data = $request->all();
         $validator = Validator::make($data, [
             'email' => 'required|string|email|max:100',
             'password' => 'required|string|min:3|max:100|confirmed',
             'token' => 'required|string',
-        ],$messages);
+        ],$this->messages);
 
         if ($validator->fails()) {
             return response()->json([
@@ -375,6 +374,115 @@ class userController extends Controller
                 'message' => "Error al restablecer contraseña",
             ], 400);
         }
-    }    
+    }
+
+    public function updateUser(Request $request)
+    {
+        $id = $request->id;
+        //Valida si el usuario está registrado en la base de datos.
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json([
+                'status' => 400,
+                'success' => false,
+                'message' => 'Usuario no encontrado.',
+            ]);
+        }
+
+        $data = $request->all();
+        $idActualUser = $this->me()->getData()->id;
+        $actualUser = User::find($idActualUser);
+        $roles = $actualUser->roles()->pluck('id')->toArray();//"superadmin"=>id=1,"admin"=>id=2,"tutor"=>id=3,"asistente"=>id=4
+        
+        if (!in_array(1, $roles) && $user->id != $idActualUser) {
+            //Si no es usuario superadmin y tampoco es el mismo usuario entonces no puede modificar
+            return response()->json([
+                'status' => 400,
+                'success' => false,
+                'message' => "Usuario no autorizado",
+            ]);
+        }
+
+        $exists = User::documentExists($request->id_tipos_identificacion,$request->numero_identificacion,$id);
+        if ($exists) {
+            return response()->json([
+                'status' => 400,
+                'success' => false,
+                'message' => 'Tipo y número de documento ya registrado.',
+            ]);
+        }
+
+        if (in_array(1, $roles)) {            
+            //Superadmin puede modificar todos los datos
+            $validator = Validator::make($data, [
+                'name' => 'required|string|min:5|max:20|unique:users,name,' . $id,
+                'email' => 'required|string|email|max:100|unique:users,email,' . $id,
+                'password' => 'required|string|min:3|max:100|confirmed',
+                'primer_nombre' => 'required|string|min:3|max:100',
+                'otros_nombres' => 'string|min:3|max:100|nullable',
+                'primer_apellido' => 'required|string|min:3|max:100',
+                'segundo_apellido' => 'string|min:3|max:100|nullable',
+                'telefono' => 'required|string|min:7|max:20',
+                'numero_identificacion' => 'required|string|min:7|max:20',
+                'id_tipos_identificacion' => 'required|integer|max:3',
+                'id_estado' => 'required|integer|max:2',
+            ], $this->messages);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 400,
+                    'success' => false,
+                    'message' => $validator->errors()->first(),
+                ]);
+            }
+            $user->name = $data['name'];
+            $user->email = $data['email'];
+            $user->password = Hash::make($data['password']);
+            $user->primer_nombre = $data['primer_nombre'];
+            $user->otros_nombres = $data['otros_nombres'] ?? null; // nullable field
+            $user->primer_apellido = $data['primer_apellido'];
+            $user->segundo_apellido = $data['segundo_apellido'] ?? null; // nullable field
+            $user->telefono = $data['telefono'];
+            $user->numero_identificacion = $data['numero_identificacion'];
+            $user->id_tipos_identificacion = $data['id_tipos_identificacion'];
+            $user->id_estado = $data['id_estado'];
+        }
+        
+        
+        if ($user->id == $idActualUser && !in_array(1, $roles)) {            
+            // El usuario solo puede modificar correo electrónico, número de celular y la contraseña
+            $validator = Validator::make($data, [
+                'email' => 'email|unique:users,email,' . $id,            
+                'telefono' => 'string|min:7|max:20',
+                'password' => 'string|min:3|max:100|confirmed',
+            ], $this->messages);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 400,
+                    'success' => false,
+                    'message' => $validator->errors()->first(),
+                ]);
+            }
+            $user->email = $data['email'] ?? $user->email;
+            $user->password = Hash::make($data['password']??$user->password);
+            $user->telefono = $data['telefono']??$user->telefono;
+        }
+        try {
+            $user->save();
+            return response()->json([
+                'status' => 200,
+                'success' => true,
+                'data' => $user,
+                'message' => 'Registro actualizado exitosamente.',
+            ]);
+        } catch (QueryException $ex) {
+            return response()->json([
+                'status' => 400,
+                'success' => false,
+                'message' => 'Error al actualizar el registro: ' . $ex->getMessage(),
+            ]);
+        }
+    }
     
 }
