@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
             EstadosSeeder::class,
             TiposIdentificacionSeeder::class,
             ConfigServerSeeder::class,
+            RolSeeder::class,
+            UsersSeeder::class,
         ]);
     }
 }

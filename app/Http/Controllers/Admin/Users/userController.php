@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin\Users;
 
 use App;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
@@ -15,6 +16,7 @@ use Illuminate\Auth\Events\PasswordReset;
 use App\Services\MailConfigService;
 use App\Mail\ResetPasswordMail;
 use Illuminate\Support\Facades\Mail;
+
 
 class userController extends Controller
 {
@@ -35,7 +37,7 @@ class userController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index($rows=10){
-        $users = User::where('id_estado', 1)->or('id_estado', 2)     
+        $users = User::where('id_estado', 1)->orwhere('id_estado', 2)     
         ->paginate($rows, [
             // '*' //Esto significa que se devuelven todos los campos de la tabla
             'id',
