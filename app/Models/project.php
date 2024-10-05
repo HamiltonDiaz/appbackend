@@ -18,4 +18,11 @@ class project extends Model
         'ruta',
         'id_categoria'
     ];
+    
+
+    // Definir las relaciones
+    public function cateogria()
+    {
+        return $this->belongsTo(category::class, 'id_categoria');
+    }
 }

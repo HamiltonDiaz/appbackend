@@ -73,11 +73,15 @@ class userController extends Controller
 
     ];
 
-    public function __construct(MailConfigService $mailConfig)
+    public function __construct(MailConfigService $mailConfig = null)
     {
-        $this->mailConfig = $mailConfig;
+        if ($mailConfig === null) {
+            // Manejar el caso en que el servicio no fue pasado
+            $this->mailConfig = app(MailConfigService::class); // Obtener el servicio desde el contenedor si es necesario
+        } else {
+            $this->mailConfig = $mailConfig;
+        }
     }
-
 
 
     /**
@@ -376,6 +380,13 @@ class userController extends Controller
         }
     }
 
+    public function validateRole($idUser, $idRole){
+        $actualUser = User::find($idUser);
+        //"superadmin"=>id=1,"admin"=>id=2,"tutor"=>id=3,"asistente"=>id=4
+        $roles = $actualUser->roles()->pluck('id')->toArray();
+        return in_array($idRole, $roles);
+    }
+
     public function updateUser(Request $request)
     {
         $id = $request->id;
@@ -390,11 +401,10 @@ class userController extends Controller
         }
 
         $data = $request->all();
-        $idActualUser = $this->me()->getData()->id;
-        $actualUser = User::find($idActualUser);
-        $roles = $actualUser->roles()->pluck('id')->toArray();//"superadmin"=>id=1,"admin"=>id=2,"tutor"=>id=3,"asistente"=>id=4
-        
-        if (!in_array(1, $roles) && $user->id != $idActualUser) {
+        $idActualUser = $this->me()->getData()->id;      
+        $roles= $this->validateRole($idActualUser, 1);//valida si es superadmin
+
+        if (!$roles && $user->id != $idActualUser) {
             //Si no es usuario superadmin y tampoco es el mismo usuario entonces no puede modificar
             return response()->json([
                 'status' => 400,
@@ -412,7 +422,7 @@ class userController extends Controller
             ]);
         }
 
-        if (in_array(1, $roles)) {            
+        if ($roles) {            
             //Superadmin puede modificar todos los datos
             $validator = Validator::make($data, [
                 'name' => 'required|string|min:5|max:20|unique:users,name,' . $id,
@@ -449,7 +459,7 @@ class userController extends Controller
         }
         
         
-        if ($user->id == $idActualUser && !in_array(1, $roles)) {            
+        if ($user->id == $idActualUser && !$roles) {            
             // El usuario solo puede modificar correo electrónico, número de celular y la contraseña
             $validator = Validator::make($data, [
                 'email' => 'email|unique:users,email,' . $id,            
@@ -483,6 +493,39 @@ class userController extends Controller
                 'message' => 'Error al actualizar el registro: ' . $ex->getMessage(),
             ]);
         }
+    }
+    public function destroy($id)
+    {
+        //Valida si el usuario está registrado en la base de datos.
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json([
+                'status' => 400,
+                'success' => false,
+                'message' => 'Usuario no encontrado.',
+            ]);
+        }
+
+        $idActualUser = $this->me()->getData()->id;      
+        $roles= $this->validateRole($idActualUser, 1);//valida si es superadmin
+
+        if (!$roles) {
+            //Si no es usuario superadmin entonces no puede elminar
+            return response()->json([
+                'status' => 400,
+                'success' => false,
+                'message' => "Usuario no autorizado",
+            ]);
+        }
+        
+        $user->id_estado = 3;
+        $user->save();
+        return response()->json([
+            'status' => 200,
+            'success' => true,
+            'data' => null,
+            'message' => 'Registro elminado exitosamente.',
+        ]);
     }
     
 }

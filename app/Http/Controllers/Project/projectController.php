@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Project;
 
+use App\Http\Controllers\Admin\Users\userController;
 use App\Http\Controllers\Controller;
+use App\Models\history;
 use Illuminate\Http\Request;
 use App\Models\project;
 use Illuminate\Support\Facades\Validator;
@@ -40,9 +42,7 @@ class projectController extends Controller
         'archivo.mimes' => 'El archivo debe ser de tipo PDF.',
     ];
 
-    public function storeFile(Request $request){
 
-    }
     public function downloadFile($name){
         
     }
@@ -98,12 +98,25 @@ class projectController extends Controller
             }
             //Guardar datos
             $project->titulo=$data['titulo'];
-            $project->palabras_claves=$data['palabras_claves'];
+            // dd($data['palabras_claves']);
+            $project->palabras_claves=json_encode($data['palabras_claves']);
             $project->descripcion=$data['descripcion'];
             $project->fechainicio=$data['fecha_inicial'];
             $project->fechafin=$data['fecha_final']?? null;
             $project->id_categoria=$data['categoria'];    
-            
+            $project->save();
+
+            //Guardar historico            
+            $user = new userController(null);            
+            $idActualUser=$user->me()->getData()->id;
+            $historico= new history();
+            $historico->id_proyecto=$project->id;
+            $historico->id_usuario=$idActualUser;
+            $historico->fecha=now();
+            $historico->descripcion="Creación proyecto";
+            $historico->save();
+
+
             return response()->json([
                 'status' => 200,
                 'success' => true,

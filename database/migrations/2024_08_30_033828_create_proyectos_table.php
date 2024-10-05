@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('proyectos', function (Blueprint $table) {
             $table->id();
             $table->string('titulo',200);
-            $table->string('palabras_claves',200);
+            $table->json('palabras_claves');
+            // $table->string('palabras_claves',200);
             $table->text('descripcion')->length(2600);
             $table->dateTime('fechainicio');
-            $table->dateTime('fechafin');
-            $table->text('ruta')->length(800);
+            $table->dateTime('fechafin')->nullable();
+            $table->text('ruta')->length(800)->nullable();
             $table->unsignedBigInteger('id_categoria',);
             $table->timestamps();
              //Llaves Foraneas

@@ -19,6 +19,7 @@ Route::prefix("v1/users")->group(function () {
         Route::get('find/{id}', [UserController::class, 'findById'])->name('user.findById');    
         Route::get('list-all/{rows?}', [UserController::class, 'index'])->name('user.index');
         Route::put('update', [UserController::class, 'updateUser'])->name('user.update');
+        Route::delete('delete/{id}', [UserController::class, 'destroy'])->name('user.delete');
         
         //Roles
     });
@@ -39,8 +40,7 @@ Route::prefix("v1/config-server")->group(function () {
 //Rutas para gestión de proyectos
 Route::prefix("v1/project")->group(function () {
     Route::middleware('auth:api')->group(function () {
-
+        Route::post('create', [projectController::class, 'store'])->name('project.create');
     });
     
-    Route::post('create', [projectController::class, 'store'])->name('project.create');
 });
