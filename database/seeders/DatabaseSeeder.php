@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             ConfigServerSeeder::class,
             RolSeeder::class,
             UsersSeeder::class,
+            CategoriaSeeder::class
         ]);
     }
 }
