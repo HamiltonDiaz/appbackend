@@ -21,9 +21,12 @@ return new class extends Migration
             $table->dateTime('fechafin')->nullable();
             $table->text('ruta')->length(800)->nullable();
             $table->unsignedBigInteger('id_categoria',);
+            $table->unsignedBigInteger('id_estado');
             $table->timestamps();
              //Llaves Foraneas
              $table->foreign('id_categoria')->references('id')->on('categoria');
+             $table->foreign('id_estado')->references('id')->on('estados');
+
         });
     }
 

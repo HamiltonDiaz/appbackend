@@ -16,7 +16,8 @@ class project extends Model
         'fechainicio',
         'fechafin',
         'ruta',
-        'id_categoria'
+        'id_categoria',
+        'id_estado'
     ];
     
 
