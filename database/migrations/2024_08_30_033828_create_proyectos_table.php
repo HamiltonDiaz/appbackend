@@ -17,8 +17,8 @@ return new class extends Migration
             $table->json('palabras_claves');
             // $table->string('palabras_claves',200);
             $table->text('descripcion')->length(2600);
-            $table->dateTime('fechainicio');
-            $table->dateTime('fechafin')->nullable();
+            $table->date('fechainicio');
+            $table->date('fechafin')->nullable();
             $table->text('ruta')->length(800)->nullable();
             $table->unsignedBigInteger('id_categoria',);
             $table->unsignedBigInteger('id_estado');
