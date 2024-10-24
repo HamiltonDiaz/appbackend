@@ -43,6 +43,7 @@ Route::prefix("v1/project")->group(function () {
         Route::post('create', [projectController::class, 'store'])->name('project.create');
         Route::put('update', [projectController::class, 'update'])->name('project.update');
         Route::get('list-all/{rows?}', [projectController::class, 'index'])->name('project.index');
+        Route::delete('delete/{id}', [projectController::class, 'destroy'])->name('user.delete');
 
     });
     
