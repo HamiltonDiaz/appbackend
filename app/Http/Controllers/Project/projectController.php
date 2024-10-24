@@ -78,15 +78,6 @@ class projectController extends Controller
             ]);
     }
 
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -136,7 +127,7 @@ class projectController extends Controller
             $project->save();
 
             //Guardar historico            
-            $user = new userController(null);
+            $user = new userController();
             $idActualUser = $user->me()->getData()->id;
             $historico = new history();
             $historico->id_proyecto = $project->id;
@@ -215,7 +206,7 @@ class projectController extends Controller
             $original = $project->getOriginal(); 
             $project->save();
 
-            $user = new userController(null);
+            $user = new userController();
             $idActualUser = $user->me()->getData()->id;
             foreach ($project->getAttributes() as $key => $value) {
                 if ($original[$key] != $value && $key != 'updated_at') {
@@ -243,7 +234,47 @@ class projectController extends Controller
     }
 
 
-    public function destroy(string $id) {}
+    public function destroy(string $id) {
+             //Valida si el usuario está registrado en la base de datos.
+             $project = project::find($id);
+             if (!$project) {
+                 return response()->json([
+                     'status' => 400,
+                     'success' => false,
+                     'message' => 'Proyecto no encontrado.',
+                 ]);
+             }
+     
+             $user = new userController();
+             $idActualUser = $user->me()->getData()->id;    
+            //  $roles= $this->validateRole($idActualUser, 1);//valida si es superadmin
+     
+            //  if (!$roles) {
+            //      //Si no es usuario superadmin entonces no puede elminar
+            //      return response()->json([
+            //          'status' => 400,
+            //          'success' => false,
+            //          'message' => "Usuario no autorizado",
+            //      ]);
+            //  }
+             
+
+            $historico = new history();
+            $historico->id_proyecto = $id;
+            $historico->id_usuario = $idActualUser;
+            $historico->fecha = now();
+            $historico->descripcion = "Proyecto elminado";
+            $historico->save();
+
+             $project->id_estado = 3;
+             $project->save();
+             return response()->json([
+                 'status' => 200,
+                 'success' => true,
+                 'data' => null,
+                 'message' => 'Registro elminado exitosamente.',
+             ]);
+    }
     public function downloadFile($name) {}
 
 

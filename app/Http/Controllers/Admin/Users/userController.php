@@ -73,14 +73,9 @@ class userController extends Controller
 
     ];
 
-    public function __construct(MailConfigService $mailConfig = null)
+    public function __construct()
     {
-        if ($mailConfig === null) {
-            // Manejar el caso en que el servicio no fue pasado
-            $this->mailConfig = app(MailConfigService::class); // Obtener el servicio desde el contenedor si es necesario
-        } else {
-            $this->mailConfig = $mailConfig;
-        }
+           $this->mailConfig = new MailConfigService() ;
     }
 
 
