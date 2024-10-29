@@ -50,14 +50,21 @@ class projectController extends Controller
      * @param int $rows Número de filas a obtener por defecto.
      * @return \Illuminate\Http\Response
      */
-    public function index($rows = 10)
+    public function index($rows = 10, $search = null)
     {
-        return project::from('proyectos as p')
-        ->where('p.id_estado', 1)
-        ->orWhere('p.id_estado', 2)
-        ->join('categoria as c', 'p.id_categoria', '=', 'c.id')
-        ->join('estados as e', 'p.id_estado', '=', 'e.id')
-        ->paginate($rows, [
+        $query = project::from('proyectos as p')
+            ->where(function ($query) {
+                $query->where('p.id_estado', 1)
+                      ->orWhere('p.id_estado', 2);
+            })
+            ->join('categoria as c', 'p.id_categoria', '=', 'c.id')
+            ->join('estados as e', 'p.id_estado', '=', 'e.id');
+    
+        if ($search) {
+            $query->whereRaw("CONCAT_WS(' ', p.titulo, p.fechainicio, p.fechafin, p.ruta, p.palabras_claves, p.descripcion, c.descripcion, e.descripcion) LIKE ?", ["%$search%"]);
+        }
+    
+        return $query->paginate($rows, [
             'p.id',
             'p.titulo',
             'p.fechainicio',
@@ -65,10 +72,11 @@ class projectController extends Controller
             'p.ruta',
             'p.palabras_claves',
             'p.descripcion',
-            'c.descripcion',
-            'e.descripcion'
+            'c.descripcion as categoria_descripcion',
+            'e.descripcion as estado_descripcion'
         ]);
     }
+    
 
 
     /**
