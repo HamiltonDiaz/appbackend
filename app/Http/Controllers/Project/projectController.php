@@ -7,9 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Models\history;
 use Illuminate\Http\Request;
 use App\Models\project;
+use App\Models\User;
+use App\Models\usuariosHasProyectos;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\QueryException;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class projectController extends Controller
@@ -48,6 +50,9 @@ class projectController extends Controller
 
         'archivo.file' => 'Información de archivo incorrecta.',
         'archivo.mimes' => 'El archivo debe ser de tipo PDF.',
+
+        'id_proyecto'=>'Proyecto es obligatorio',
+        'id_usuario'=>'Usuario es obligatorio.',
     ];
 
 
@@ -70,8 +75,7 @@ class projectController extends Controller
     
         if ($search) {
             $query->whereRaw("CONCAT_WS(' ', p.titulo, p.fechainicio, p.fechafin, p.ruta, p.palabras_claves, p.descripcion, c.descripcion, e.descripcion) LIKE ?", ["%$search%"]);
-        }
-    
+        }          
         return $query->paginate($rows, [
             'p.id',
             'p.titulo',
@@ -85,19 +89,6 @@ class projectController extends Controller
         ]);
     }
     
-
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
 
@@ -249,8 +240,6 @@ class projectController extends Controller
             ]);
         }
     }
-
-
     public function destroy(string $id) {
              //Valida si el usuario está registrado en la base de datos.
              $project = project::find($id);
@@ -263,7 +252,7 @@ class projectController extends Controller
              }
      
              $user = new userController();
-             $idActualUser = $user->me()->getData()->id;    
+             $idActualUser = $user->me()->getData()->id;
             //  $roles= $this->validateRole($idActualUser, 1);//valida si es superadmin
      
             //  if (!$roles) {
@@ -294,12 +283,8 @@ class projectController extends Controller
     }
     public function downloadFile($file)
     {
-        // Construir la ruta del archivo en storage/app/public
         $rutaArchivo = "public/{$file}";
-
-        // Verificar si el archivo existe
         if (Storage::exists($rutaArchivo)) {
-            // Retornar el archivo para descarga
             return Storage::download($rutaArchivo);
         } else {
             return response()->json([
@@ -310,12 +295,112 @@ class projectController extends Controller
             ]);
         }
     }
-
-
-    public function show(string $id)
+    public function findById(string $id)
     {
-        //
+        try {
+            $project = Project::where('id', $id)->where('id_estado', '!=', 3)->first();
+            if (!$project) {
+                return response()->json([
+                    'status' => 400,
+                    'success' => false,
+                    'message' => 'Registro no encontrado.',
+                ]);
+            }
+            $project->palabras_claves = json_decode($project->palabras_claves);
+            $historico=history::where('id_proyecto', $project->id)->orderBy('id', 'asc') ->get();
+            // $members= new usuariosHasProyectos();
+            $members= usuariosHasProyectos::where('id_proyecto', $project->id)
+            ->join('users', 'users.id', '=', 'usuarios_has_proyectos.id_usuario')
+            ->join('tipos_identificacion','tipos_identificacion.id', '=', 'users.id_tipos_identificacion')
+            ->select(
+                'users.id',
+                'tipos_identificacion.descripcion',
+                'users.numero_identificacion',
+                DB::raw("CONCAT_WS(' ', users.primer_nombre, users.otros_nombres, users.primer_apellido, users.segundo_apellido) as nombre"),
+                'users.email',
+                'users.telefono',
+                
+            )
+            ->get();
+
+            return response()->json([
+                'status' => 200,
+                'success' => true,
+                'data'=>[
+                    'proyecto' => $project, 
+                    'historico' => $historico,
+                    'integrantes' => $members
+                ],
+                'message' => 'Registro encontrado exitosamente.',
+            ]);
+        } catch (QueryException $ex) {
+            return response()->json([
+                'status' => 400,
+                'success' => false,                
+                'message' => 'Error al consultar el registro: ' . $ex->getMessage(),
+            ]);
+        }
     }
 
-    public function edit(string $id) {}
+    public function assignMember(Request $request){
+        
+        $data = $request->all();
+        $validator = Validator::make($data, [
+            'id_proyecto' => 'required|integer',
+            'id_usuario' => 'required|integer',
+        ], $this->messages);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 400,
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $project = project::find($data['id_proyecto']);
+        if (!$project) {
+            return response()->json([
+                'status' => 400,
+                'success' => false,
+                'message' => 'Proyecto no encontrado.',
+            ]);
+        }
+
+        $user = User::find($data['id_usuario']);
+        if (!$user) {
+            return response()->json([
+                'status' => 400,
+                'success' => false,
+                'message' => 'Usuario no encontrado.',
+            ]);
+        }
+
+        $usuarioFinal= trim($user->primer_nombre . ' ' . $user->otros_nombres . ' ' . $user->primer_apellido . ' ' . $user->segundo_apellido);
+
+        $members= new usuariosHasProyectos();
+        $members->id_proyecto = $data['id_proyecto'];
+        $members->id_usuario = $data['id_usuario'];
+        $members->save();
+
+        $user = new userController();
+        $idActualUser = $user->me()->getData()->id;
+
+        $historico = new history();
+        $historico->id_proyecto = $data['id_proyecto'];
+        $historico->id_usuario = $idActualUser;
+        $historico->fecha = now();
+        $historico->descripcion = 'Se agrega usuario ' . $usuarioFinal . ' al proyecto';
+        $historico->save();
+        
+
+        return response()->json([
+            'status' => 200,
+            'success' => true,
+            'data' => $members,
+            'message' => 'Registro creado exitosamente.',
+        ]);
+
+    }
+
 }
