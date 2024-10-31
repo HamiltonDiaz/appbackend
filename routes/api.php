@@ -45,7 +45,7 @@ Route::prefix("v1/project")->group(function () {
         Route::put('update', [projectController::class, 'update'])->name('project.update');
         Route::get('list-all/{rows?}', [projectController::class, 'index'])->name('project.index');
         Route::delete('delete/{id}', [projectController::class, 'destroy'])->name('user.delete');
-
+        Route::get('download/{file}', [projectController::class, 'downloadFile'])->name('project.downloadfile');
     });
     
 });

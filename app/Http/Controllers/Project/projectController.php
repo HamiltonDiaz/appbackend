@@ -38,9 +38,9 @@ class projectController extends Controller
         'fechafin.date' => 'El campo fecha final debe ser una fecha válida.',
         'fechafin.date_format' => 'Formato incorrecto para fecha final.',
 
-        'categoria.required' => 'Categoría es obligatoria.',
-        'categoria.integer' => 'Categoría debe ser un número entero.',
-        'categoria.max' => 'Categoría no puede exceder los 2 caracteres.',
+        'id_categoria.required' => 'Categoría es obligatoria.',
+        'id_categoria.integer' => 'Categoría debe ser un número entero.',
+        'id_categoria.max' => 'Categoría no puede exceder los 2 caracteres.',
 
         'estado.required' => 'Estado es obligatorio.',
         'estado.integer' => 'Estado debe ser un número entero.',
@@ -129,7 +129,7 @@ class projectController extends Controller
             //Guardar archivo pdf
             if ($request->hasFile('archivo')) {
                 $path = $request->file('archivo')->store($this->disk);
-                $project->ruta = $path; //nombre del archivo
+                $project->ruta = basename($path); //nombre del archivo
             } else {
                 $project->ruta = null; //nombre del archivo
             }
@@ -205,7 +205,7 @@ class projectController extends Controller
             //Guardar archivo pdf
             if ($request->hasFile('archivo')) {
                 $path = $request->file('archivo')->store($this->disk);
-                $project->ruta = $path; //nombre del archivo
+                $project->ruta = basename($path); //nombre del archivo
             } else {
                 $project->ruta = null; //nombre del archivo
             }
@@ -292,7 +292,24 @@ class projectController extends Controller
                  'message' => 'Registro elminado exitosamente.',
              ]);
     }
-    public function downloadFile($name) {}
+    public function downloadFile($file)
+    {
+        // Construir la ruta del archivo en storage/app/public
+        $rutaArchivo = "public/{$file}";
+
+        // Verificar si el archivo existe
+        if (Storage::exists($rutaArchivo)) {
+            // Retornar el archivo para descarga
+            return Storage::download($rutaArchivo);
+        } else {
+            return response()->json([
+                'status' => 404,
+                'success' => false,
+                'data' => null,
+                'message' => 'Archivo no encontrado',
+            ]);
+        }
+    }
 
 
     public function show(string $id)
