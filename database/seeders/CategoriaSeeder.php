@@ -13,14 +13,14 @@ class CategoriaSeeder extends Seeder
      */
     public function run(): void
     {
-        $categoria1= new category();
-        $categoria1->id=1;
-        $categoria1->descripcion="Programación";
-        $categoria1->save();
-        
-        $categoria2= new category();
-        $categoria2->id=2;
-        $categoria2->descripcion="Innovación";
-        $categoria2->save();
+        category::updateOrCreate(
+        ['id' => 1],
+        ['descripcion' => 'Programación']
+        );
+
+        category::updateOrCreate(
+            ['id' => 2],
+            ['descripcion' => 'Innovación']
+        );
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Project;
 
-use App\Http\Controllers\Admin\Users\userController;
+use App\Http\Controllers\Admin\Users\UserController;
 use App\Http\Controllers\Controller;
 use App\Models\history;
 use Illuminate\Http\Request;
@@ -59,7 +59,7 @@ class projectController extends Controller
     /**
      * Muestra una lista de todos los proyectos con sus datos,
      * excluyendo aquellos que están inactivos o eliminados
-     * 
+     *
      * @param int $rows Número de filas a obtener por defecto.
      * @return \Illuminate\Http\Response
      */
@@ -72,10 +72,10 @@ class projectController extends Controller
             })
             ->join('categoria as c', 'p.id_categoria', '=', 'c.id')
             ->join('estados as e', 'p.id_estado', '=', 'e.id');
-    
+
         if ($search) {
             $query->whereRaw("CONCAT_WS(' ', p.titulo, p.fechainicio, p.fechafin, p.ruta, p.palabras_claves, p.descripcion, c.descripcion, e.descripcion) LIKE ?", ["%$search%"]);
-        }          
+        }
         return $query->paginate($rows, [
             'p.id',
             'p.titulo',
@@ -88,7 +88,7 @@ class projectController extends Controller
             'e.descripcion as estado_descripcion'
         ]);
     }
-    
+
     public function store(Request $request)
     {
 
@@ -134,8 +134,8 @@ class projectController extends Controller
             $project->id_estado = 1;
             $project->save();
 
-            //Guardar historico            
-            $user = new userController();
+            //Guardar historico
+            $user = new UserController();
             $idActualUser = $user->me()->getData()->id;
             $historico = new history();
             $historico->id_proyecto = $project->id;
@@ -211,10 +211,10 @@ class projectController extends Controller
             $project->id_estado = $data['id_estado'];
 
             // Capturar el estado original antes de guardar
-            $original = $project->getOriginal(); 
+            $original = $project->getOriginal();
             $project->save();
 
-            $user = new userController();
+            $user = new UserController();
             $idActualUser = $user->me()->getData()->id;
             foreach ($project->getAttributes() as $key => $value) {
                 if ($original[$key] != $value && $key != 'updated_at') {
@@ -250,11 +250,11 @@ class projectController extends Controller
                      'message' => 'Proyecto no encontrado.',
                  ]);
              }
-     
-             $user = new userController();
+
+             $user = new UserController();
              $idActualUser = $user->me()->getData()->id;
             //  $roles= $this->validateRole($idActualUser, 1);//valida si es superadmin
-     
+
             //  if (!$roles) {
             //      //Si no es usuario superadmin entonces no puede elminar
             //      return response()->json([
@@ -263,7 +263,7 @@ class projectController extends Controller
             //          'message' => "Usuario no autorizado",
             //      ]);
             //  }
-             
+
 
             $historico = new history();
             $historico->id_proyecto = $id;
@@ -319,7 +319,7 @@ class projectController extends Controller
                 DB::raw("CONCAT_WS(' ', users.primer_nombre, users.otros_nombres, users.primer_apellido, users.segundo_apellido) as nombre"),
                 'users.email',
                 'users.telefono',
-                
+
             )
             ->get();
 
@@ -327,7 +327,7 @@ class projectController extends Controller
                 'status' => 200,
                 'success' => true,
                 'data'=>[
-                    'proyecto' => $project, 
+                    'proyecto' => $project,
                     'historico' => $historico,
                     'integrantes' => $members
                 ],
@@ -336,14 +336,14 @@ class projectController extends Controller
         } catch (QueryException $ex) {
             return response()->json([
                 'status' => 400,
-                'success' => false,                
+                'success' => false,
                 'message' => 'Error al consultar el registro: ' . $ex->getMessage(),
             ]);
         }
     }
 
     public function assignMember(Request $request){
-        
+
         $data = $request->all();
         $validator = Validator::make($data, [
             'id_proyecto' => 'required|integer',
@@ -383,7 +383,7 @@ class projectController extends Controller
         $members->id_usuario = $data['id_usuario'];
         $members->save();
 
-        $user = new userController();
+        $user = new UserController();
         $idActualUser = $user->me()->getData()->id;
 
         $historico = new history();
@@ -392,7 +392,7 @@ class projectController extends Controller
         $historico->fecha = now();
         $historico->descripcion = 'Se agrega usuario ' . $usuarioFinal . ' al proyecto';
         $historico->save();
-        
+
 
         return response()->json([
             'status' => 200,

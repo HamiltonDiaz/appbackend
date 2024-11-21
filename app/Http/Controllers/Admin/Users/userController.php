@@ -18,7 +18,7 @@ use App\Mail\ResetPasswordMail;
 use Illuminate\Support\Facades\Mail;
 
 
-class userController extends Controller
+class UserController extends Controller
 {
     protected $mailConfig;
     protected   $messages = [
@@ -31,36 +31,36 @@ class userController extends Controller
         'email.email' => 'El correo electrónico debe ser una dirección válida.',
         'email.max' => 'El correo electrónico no puede exceder los 100 caracteres.',
         'email.unique' => 'El correo electrónico ya ha sido registrado.',
-        
+
         'password.required' => 'La contraseña es obligatoria.',
         'password.min' => 'La contraseña debe tener al menos 3 caracteres.',
         'password.max' => 'La contraseña no puede exceder los 100 caracteres.',
         'password.confirmed' => 'La confirmación de la contraseña no coincide.',
-        
+
         'primer_nombre.required' => 'El primer nombre es obligatorio.',
         'primer_nombre.min' => 'El primer nombre debe tener al menos 3 caracteres.',
         'primer_nombre.max' => 'El primer nombre no puede exceder los 100 caracteres.',
-        
+
         'otros_nombres.string' => 'Los otros nombres deben ser una cadena de texto.',
         'otros_nombres.min' => 'Los otros nombres deben tener al menos 3 caracteres.',
         'otros_nombres.max' => 'Los otros nombres no pueden exceder los 100 caracteres.',
-        
+
         'primer_apellido.required' => 'El primer apellido es obligatorio.',
         'primer_apellido.min' => 'El primer apellido debe tener al menos 3 caracteres.',
         'primer_apellido.max' => 'El primer apellido no puede exceder los 100 caracteres.',
-        
+
         'segundo_apellido.string' => 'El segundo apellido debe ser una cadena de texto.',
         'segundo_apellido.min' => 'El segundo apellido debe tener al menos 3 caracteres.',
         'segundo_apellido.max' => 'El segundo apellido no puede exceder los 100 caracteres.',
-        
+
         'telefono.required' => 'El teléfono es obligatorio.',
         'telefono.min' => 'El teléfono debe tener al menos 7 caracteres.',
         'telefono.max' => 'El teléfono no puede exceder los 20 caracteres.',
-        
+
         'numero_identificacion.required' => 'El número de identificación es obligatorio.',
         'numero_identificacion.min' => 'El número de identificación debe tener al menos 7 caracteres.',
         'numero_identificacion.max' => 'El número de identificación no puede exceder los 20 caracteres.',
-        
+
         'id_tipos_identificacion.required' => 'El tipo de identificación es obligatorio.',
         'id_tipos_identificacion.integer' => 'El tipo de identificación debe ser un número entero.',
         'id_tipos_identificacion.max' => 'El tipo de identificación no puede exceder los 2 caracteres.',
@@ -82,12 +82,12 @@ class userController extends Controller
     /**
      * Muestra una lista de todos los usuarios con sus datos,
      * excluyendo aquellos que están inactivos o elminados
-     * 
+     *
      * @param int $rows Número de filas a obtener por defecto.
      * @return \Illuminate\Http\Response
      */
     public function index($rows=10){
-        $users = User::where('id_estado', 1)->orwhere('id_estado', 2)     
+        $users = User::where('id_estado', 1)->orwhere('id_estado', 2)
         ->paginate($rows, [
             // '*' //Esto significa que se devuelven todos los campos de la tabla
             'id',
@@ -174,13 +174,13 @@ class userController extends Controller
         } catch (QueryException $ex) {
             return response()->json([
                 'status' => 400,
-                'success' => false,                
+                'success' => false,
                 'message' => 'Error al crear el registro: ' . $ex->getMessage(),
             ]);
         }
     }
 
-    public function findById($id){        
+    public function findById($id){
         try {
             $user = User::find($id);
 
@@ -201,11 +201,11 @@ class userController extends Controller
         } catch (QueryException $ex) {
             return response()->json([
                 'status' => 400,
-                'success' => false,                
+                'success' => false,
                 'message' => 'Error al consultar el registro: ' . $ex->getMessage(),
             ]);
         }
-        
+
     }
 
     /**
@@ -217,12 +217,12 @@ class userController extends Controller
      * Si la autenticación es exitosa, devuelve un token de acceso mediante el método `respondWithToken()`.
      *
      * @param \Illuminate\Http\Request $request La solicitud que contiene las credenciales del usuario.
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse Una respuesta JSON que contiene el token de acceso o un mensaje de error.
      */
     public function login(Request $request)
     {
-        $credentials = $request->only('name', 'password'); 
+        $credentials = $request->only('name', 'password');
         $token =Auth::attempt($credentials);
         if (!$token) {
             return response()->json(['error' => 'Credenciales incorrectas'], 401);
@@ -232,24 +232,24 @@ class userController extends Controller
 
     /**
      * Cierra la sesión actual y elimina el token de autenticación.
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function logout()
     {
         $token = JWTAuth::getToken();// Obtén el token actual
         JWTAuth::invalidate($token);//Elimina el token
-        Auth::logout();    
+        Auth::logout();
         return response()->json([
             'status' => 200,
-            'success' => true, 
+            'success' => true,
             'message' => '!Hasta pronto!'
         ]);
     }
 
     /**
      * Devuelve el usuario autenticado actual en formato JSON.
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function me()
@@ -260,7 +260,7 @@ class userController extends Controller
 
     /**
      * Actualiza el token de autenticación actual.
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function refresh(){
@@ -284,7 +284,7 @@ class userController extends Controller
 
     /**
      * Envía un enlace de restablecimiento de contraseña al correo electrónico proporcionado.
-     * 
+     *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -292,7 +292,7 @@ class userController extends Controller
     {
         $data = $request->all();
         $validator = Validator::make($data, [
-            'email' => 'required|string|email|max:100',         
+            'email' => 'required|string|email|max:100',
         ],$this->messages);
 
         $this->mailConfig->configure();
@@ -307,18 +307,18 @@ class userController extends Controller
 
         $user = User::where('email', $request->email)->first();
         if (!$user) {
-            return response()->json([                
+            return response()->json([
             'status' => 404,
-            'success' => false, 
+            'success' => false,
             'message' => 'No se encontró el usuario'
             ], 404);
         }
-    
+
         $token = Password::createToken($user);
-    
+
         // Enviar correo con el token
-        Mail::to($request->email)->send(new ResetPasswordMail($token));    
-        return response()->json([                            
+        Mail::to($request->email)->send(new ResetPasswordMail($token));
+        return response()->json([
             'status' => 200,
             'success' => true,
             'data' => ["token" => $token],
@@ -328,7 +328,7 @@ class userController extends Controller
 
     public function reset(Request $request)
     {
-        // Validar los datos de la solicitud     
+        // Validar los datos de la solicitud
         $data = $request->all();
         $validator = Validator::make($data, [
             'email' => 'required|string|email|max:100',
@@ -343,7 +343,7 @@ class userController extends Controller
                 'message' => $validator->errors()->first(),
             ]);
         }
-        
+
         $this->mailConfig->configure();
 
         // Intentar restablecer la contraseña
@@ -396,7 +396,7 @@ class userController extends Controller
         }
 
         $data = $request->all();
-        $idActualUser = $this->me()->getData()->id;      
+        $idActualUser = $this->me()->getData()->id;
         $roles= $this->validateRole($idActualUser, 1);//valida si es superadmin
 
         if (!$roles && $user->id != $idActualUser) {
@@ -417,7 +417,7 @@ class userController extends Controller
             ]);
         }
 
-        if ($roles) {            
+        if ($roles) {
             //Superadmin puede modificar todos los datos
             $validator = Validator::make($data, [
                 'name' => 'required|string|min:5|max:20|unique:users,name,' . $id,
@@ -452,12 +452,12 @@ class userController extends Controller
             $user->id_tipos_identificacion = $data['id_tipos_identificacion'];
             $user->id_estado = $data['id_estado'];
         }
-        
-        
-        if ($user->id == $idActualUser && !$roles) {            
+
+
+        if ($user->id == $idActualUser && !$roles) {
             // El usuario solo puede modificar correo electrónico, número de celular y la contraseña
             $validator = Validator::make($data, [
-                'email' => 'email|unique:users,email,' . $id,            
+                'email' => 'email|unique:users,email,' . $id,
                 'telefono' => 'string|min:7|max:20',
                 'password' => 'string|min:3|max:100|confirmed',
             ], $this->messages);
@@ -501,7 +501,7 @@ class userController extends Controller
             ]);
         }
 
-        $idActualUser = $this->me()->getData()->id;      
+        $idActualUser = $this->me()->getData()->id;
         $roles= $this->validateRole($idActualUser, 1);//valida si es superadmin
 
         if (!$roles) {
@@ -512,7 +512,7 @@ class userController extends Controller
                 'message' => "Usuario no autorizado",
             ]);
         }
-        
+
         $user->id_estado = 3;
         $user->save();
         return response()->json([
@@ -522,5 +522,5 @@ class userController extends Controller
             'message' => 'Registro elminado exitosamente.',
         ]);
     }
-    
+
 }

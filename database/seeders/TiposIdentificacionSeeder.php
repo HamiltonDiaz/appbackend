@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\tiposIdentificacion; 
+use App\Models\tiposIdentificacion;
 
 class TiposIdentificacionSeeder extends Seeder
 {
@@ -13,31 +13,29 @@ class TiposIdentificacionSeeder extends Seeder
      */
     public function run(): void
     {
+        tiposIdentificacion::updateOrCreate(
+            ['id' => 1],
+            ['descripcion' => 'Registro Civil']
+        );
 
-        $tipoId= new tiposIdentificacion();
-        $tipoId->id=1;
-        $tipoId->descripcion="Registro Civil";
-        $tipoId->save();
+        tiposIdentificacion::updateOrCreate(
+            ['id' => 2],
+            ['descripcion' => 'Tarjeta de Identidad']
+        );
 
-        $tipoId= new tiposIdentificacion();
-        $tipoId->id=2;
-        $tipoId->descripcion="Tarjeta de Identidad";
-        $tipoId->save();
+        tiposIdentificacion::updateOrCreate(
+            ['id' => 3],
+            ['descripcion' => 'Cédula de ciudadanía']
+        );
 
-        $tipoId= new tiposIdentificacion();
-        $tipoId->id=3;
-        $tipoId->descripcion="Cédula de ciudadanía";
-        $tipoId->save();
+        tiposIdentificacion::updateOrCreate(
+            ['id' => 4],
+            ['descripcion' => 'Cédula de extranjería']
+        );
 
-        $tipoId= new tiposIdentificacion();
-        $tipoId->id=4;
-        $tipoId->descripcion="Cédula de extranjería";
-        $tipoId->save();
-
-        $tipoId= new tiposIdentificacion();
-        $tipoId->id=5;
-        $tipoId->descripcion="Pasaporte";
-        $tipoId->save();
-        
+        tiposIdentificacion::updateOrCreate(
+            ['id' => 5],
+            ['descripcion' => 'Pasaporte']
+        );
     }
 }
