@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Project;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class historyController extends Controller
+class HistoryController extends Controller
 {
     /**
      * Display a listing of the resource.

@@ -14,7 +14,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
-class projectController extends Controller
+class ProjectController extends Controller
 {
     protected $disk = 'public';
     protected $messages = [
