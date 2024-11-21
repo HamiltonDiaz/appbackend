@@ -37,6 +37,7 @@ RUN composer install --no-dev --prefer-dist \
     && npm install \
     && npm run build
 
+
 RUN chown -R www-data:www-data /var/www/html/vendor \
     && chmod -R 775 /var/www/html/vendor
 
@@ -82,4 +83,3 @@ WORKDIR /var/www/html
 # add all folders where files are being stored that require persistence. if needed, otherwise remove this line.
 VOLUME ["/var/www/html/storage/app"]
 
-CMD ["sh", "-c", "nginx && php-fpm"]
