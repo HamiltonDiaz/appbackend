@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Users\UserController;
 use App\Http\Controllers\Admin\Config\MailSettingController;
 use App\Http\Controllers\Admin\Users\RolController;
-use App\Http\Controllers\Project\projectController;
+use App\Http\Controllers\Project\ProjectController;
 
 Route::prefix("v1/users")->group(function () {
     Route::post('login', [UserController::class, 'login'])->name('login'); // Ruta de login
@@ -40,14 +40,14 @@ Route::prefix("v1/config-server")->group(function () {
 //Rutas para gestión de proyectos
 Route::prefix("v1/project")->group(function () {
     Route::middleware('auth:api')->group(function () {
-        Route::post('create', [projectController::class, 'store'])->name('project.create');
-        Route::get('list-all/{rows?}/{search?}', [projectController::class, 'index'])->name('project.index');
-        Route::get('find/{id}', [projectController::class, 'findById'])->name('project.findById');
-        Route::put('update', [projectController::class, 'update'])->name('project.update');
-        Route::get('list-all/{rows?}', [projectController::class, 'index'])->name('project.index');
-        Route::delete('delete/{id}', [projectController::class, 'destroy'])->name('project.delete');
-        Route::get('download/{file}', [projectController::class, 'downloadFile'])->name('project.downloadfile');
-        Route::post('assign-member', [projectController::class, 'assignMember'])->name('project.assignMember');
+        Route::post('create', [ProjectController::class, 'store'])->name('project.create');
+        Route::get('list-all/{rows?}/{search?}', [ProjectController::class, 'index'])->name('project.index');
+        Route::get('find/{id}', [ProjectController::class, 'findById'])->name('project.findById');
+        Route::put('update', [ProjectController::class, 'update'])->name('project.update');
+        Route::get('list-all/{rows?}', [ProjectController::class, 'index'])->name('project.index');
+        Route::delete('delete/{id}', [ProjectController::class, 'destroy'])->name('project.delete');
+        Route::get('download/{file}', [ProjectController::class, 'downloadFile'])->name('project.downloadfile');
+        Route::post('assign-member', [ProjectController::class, 'assignMember'])->name('project.assignMember');
     });
     
 });
